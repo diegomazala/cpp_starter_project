@@ -9,9 +9,9 @@ C++ example project
 
 ## Visual Studio 2017
 * [Clang for windows](http://llvm.org/)
-* LLVM Compiler Toolchain
-* Clang Power Tools
-* Clang Format
+* [LLVM Compiler Toolchain](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
+* [Clang Power Tools](https://marketplace.visualstudio.com/items?itemName=caphyon.ClangPowerTools)
+* [Clang Format](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat)
 * [cppcheck](http://cppcheck.sourceforge.net/)
 * [cppcheck-vs-addin](https://github.com/VioletGiraffe/cppcheck-vs-addin)
 

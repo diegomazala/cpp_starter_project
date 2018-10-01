@@ -9,15 +9,15 @@ int main(int argc, char* argv[])
 	using vec3_t = std::array<decimal_t, 3>;
 
 	const size_t width = 16;
-	const size_t height = 16;
+	const size_t height = width;
 
-	const uint32_t m = 64;
-	const uint32_t n = 64;
+	const uint32_t m = (argc > 1 ? atoi(argv[1]) : 64);
+	const uint32_t n = m;
 
 	std::vector<vec3_t> points(width * height);
-	for (auto i = 0; i < height; ++i)
+	for (size_t i = 0; i < height; ++i)
 	{
-		for (auto j = 0; j < width; ++j)
+		for (size_t j = 0; j < width; ++j)
 		{
 			auto index = i * width + j;
 			points[index][0] = static_cast<decimal_t>(i) / static_cast<decimal_t>(width);

@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+// bspline namespace starts here
 namespace bspline
 {
 
@@ -45,7 +46,7 @@ namespace bspline
 		using vec2_t = std::array<decimal_t, 2>;
 
 		surface(const vec3_t* _points, size_t _point_count, uint32_t _m, uint32_t _n)
-			: points(_points), point_count(_point_count), m(_n), n(_n)
+			: points(_points), point_count(_point_count), m(_m), n(_n), z_surface(point_count)
 		{
 			this->init();
 			this->apply_offset();
@@ -68,7 +69,7 @@ namespace bspline
 			const decimal_t interval_normalization_factor_v = n * vrange_inv;
 
 			auto points_ptr = points;
-			for (auto index = 0; index < point_count; ++index, points_ptr++)
+			for (size_t index = 0; index < point_count; ++index, points_ptr++)
 			{
 				const decimal_t x = (*points_ptr)[0];
 				const decimal_t y = (*points_ptr)[1];
@@ -110,9 +111,9 @@ namespace bspline
 				}
 			}
 
-			for (auto i = 0; i < m + 3; ++i)
+			for (uint32_t i = 0; i < m + 3; ++i)
 			{
-				for (auto j = 0; j < n + 3; ++j)
+				for (uint32_t j = 0; j < n + 3; ++j)
 				{
 					if (!logically_equal(omega[i][j], static_cast<decimal_t>(0)))
 					{
@@ -129,7 +130,7 @@ namespace bspline
 		//
 		// Evaluate the function at (u, v)
 		//
-		decimal_t eval(decimal_t u, decimal_t v)
+		decimal_t eval(decimal_t u, decimal_t v) const 
 		{
 			// Map to the half open domain Omega = [0,m) x [0,n)
 			u = (u - umin) / (umax - umin) * m;
@@ -161,7 +162,7 @@ namespace bspline
 		//
 		// Overload operator () to evaluate the function at (u, v)
 		//
-		decimal_t operator () (decimal_t u, decimal_t v)
+		decimal_t operator () (decimal_t u, decimal_t v) const
 		{
 			return eval(u, v);
 		}
@@ -171,9 +172,8 @@ namespace bspline
 		//
 		void apply_offset()
 		{
-			z_surface.resize(point_count);
 			auto points_ptr = points;
-			for (auto index = 0; index < point_count; ++index, points_ptr++)
+			for (size_t index = 0; index < point_count; ++index, points_ptr++)
 			{
 				z_surface[index] = (*points_ptr)[2] - average_z;
 			}
@@ -185,8 +185,12 @@ namespace bspline
 		void remove_offset()
 		{
 			for (auto& v1 : this->phi)
+			{
 				for (auto& v2 : v1)
+				{
 					v2 += average_z;
+				}
+			}
 			//average_z = 0;
 		}
 
@@ -197,11 +201,11 @@ namespace bspline
 		// Compute [i,j] indices and [s,t] params
 		//
 		std::tuple<int64_t, int64_t, decimal_t, decimal_t> compute_ijst(decimal_t x,
-			decimal_t y)
+			decimal_t y) const
 		{
 			vec2_t floor = { std::floor(x), std::floor(y) };
-			int64_t i = floor[0] - 1;
-			int64_t j = floor[1] - 1;
+			auto i = static_cast<int64_t>(floor[0] - 1);
+			auto j = static_cast<int64_t>(floor[1] - 1);
 			decimal_t s = x - floor[0];
 			decimal_t t = y - floor[1];
 
@@ -223,10 +227,10 @@ namespace bspline
 		//
 		// Compute w_kl's and sum_sum w²_ab
 		//
-		std::tuple<matrix4_t, decimal_t>
-			compute_wkl_and_sum_w_ab2(decimal_t s, decimal_t t) const
+		static std::tuple<matrix4_t, decimal_t>
+			compute_wkl_and_sum_w_ab2(decimal_t s, decimal_t t)
 		{
-			matrix4_t w = { 0, 0 };
+			matrix4_t w;
 			decimal_t sum_w_ab2 = 0;
 			for (auto k = 0; k < 4; ++k)
 			{
@@ -253,16 +257,16 @@ namespace bspline
 			decimal_t sum_z = 0;
 
 			auto points_ptr = points;
-			for (auto index = 0; index < point_count; ++index, points_ptr++)
+			for (size_t index = 0; index < point_count; ++index, points_ptr++)
 			{
 				const decimal_t x = (*points_ptr)[0];
 				const decimal_t y = (*points_ptr)[1];
 				const decimal_t z = (*points_ptr)[2];
 
-				if (x < umin) umin = x;
-				if (y < vmin) vmin = y;
-				if (x > umax) umax = x;
-				if (y > vmax) vmax = y;
+				if (x < umin) { umin = x; }
+				if (y < vmin) { vmin = y; }
+				if (x > umax) { umax = x; }
+				if (y > vmax) { vmax = y; }
 
 				sum_z += z;
 			}
@@ -275,15 +279,12 @@ namespace bspline
 
 		//
 		// Attributes
-		decimal_t umin, vmin, umax, vmax, urange_inv, vrange_inv, average_z;
-		uint32_t m;
-		uint32_t n;
-		matrix_t phi;
-		//matrix_t delta;
-		//matrix_t omega;
-		const size_t point_count;
 		const vec3_t* points;
+		const size_t point_count;
+		uint32_t m, n;
+		matrix_t phi;
+		decimal_t umin, vmin, umax, vmax, urange_inv, vrange_inv, average_z;
 		std::vector<decimal_t> z_surface;
 	};
 
-};
+} // namespace bspline
